@@ -142,6 +142,9 @@ public:
 		// Disable window message about shader not compiled (the mod works without it).
 		MakeJMP((ivfasi + 0x1F1E), (ivfasi + 0x1F3E));
 		MakeJMP((ivfasi + 0x1F79), (ivfasi + 0x1F90));
+
+		// Remove IVF logo on menu
+		MakeNOP((ivfasi + 0x8124), 10, true);
 	}
 
 	static void Fix_202(uintptr_t ivfasi)
