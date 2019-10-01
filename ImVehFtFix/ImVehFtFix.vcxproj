@@ -42,15 +42,15 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GTASA Release|Win32'">
-    <OutDir>E:\Documents\GTA Brasil new\</OutDir>
+    <OutDir>E:\Documents\GTA Brasil new</OutDir>
     <IntDir>$(ProjectDir).obj\GTASA\Release\</IntDir>
     <TargetName>ImVehFtFix</TargetName>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GTASA zDebug|Win32'">
-    <OutDir>E:\Documents\GTA Brasil new\</OutDir>
+    <OutDir>E:\Documents\GTA Brasil new</OutDir>
     <IntDir>$(ProjectDir).obj\GTASA\Debug\</IntDir>
-    <TargetName>ImVehFtFix_d</TargetName>
+    <TargetName>ImVehFtFix</TargetName>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GTASA Release|Win32'">
