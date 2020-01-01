@@ -14,6 +14,7 @@ uintptr_t ivfasi;
 
 uintptr_t Fix_202_GetDriver_NoDriverReturn, Fix_202_GetDriver_WithDriverReturn;
 uintptr_t Fix_211_7B37_TrueReturn, Fix_211_7B37_FalseReturn;
+uintptr_t Fix_211new_7B10_TrueReturn, Fix_211new_7B10_FalseReturn;
 uintptr_t Fix_211_3EF8_Return;
 
 void __declspec(naked) Fix_202_GetDriver()
@@ -50,6 +51,23 @@ void __declspec(naked) Fix_211_7B37()
 
 		falsereturn:
 		push Fix_211_7B37_FalseReturn
+		ret
+	}
+}
+
+void __declspec(naked) Fix_211new_7B10()
+{
+	__asm {
+		cmp    eax, 10h
+		jz falsereturn
+
+		mov     cl, [eax]
+		mov[eax + edx], cl
+		push Fix_211new_7B10_TrueReturn
+		ret
+
+		falsereturn :
+		push Fix_211new_7B10_FalseReturn
 		ret
 	}
 }
@@ -128,6 +146,25 @@ char __cdecl NewRenderLicenseplateTextToRaster(char *text, RwRaster *charsRaster
 class ImVehFtFix {
 public:
 
+	static void Fix_211new(uintptr_t ivfasi)
+	{
+		// Fix a common random crash when opening the game. License plate text related.
+		// TODO: Redirect to the original function, this new one looks useless (it was for testing proposes)
+		patch::RedirectCall((ivfasi + 0x3F6D), NewRenderLicenseplateTextToRaster, true);
+		 
+		// Fix a common random crash during night.
+		Fix_211new_7B10_TrueReturn = ivfasi + 0x7BF9;
+		Fix_211new_7B10_FalseReturn = ivfasi + 0x7BFE;
+		MakeJMP((ivfasi + 0x7B10), Fix_211new_7B10);
+
+		// Disable window message about shader not compiled (the mod works without it).
+		MakeJMP((ivfasi + 0x1F1E), (ivfasi + 0x1F3E));
+		MakeJMP((ivfasi + 0x1F79), (ivfasi + 0x1F90));
+
+		// Remove IVF logo on menu
+		MakeNOP((ivfasi + 0x8104), 10, true);
+	}
+
 	static void Fix_211(uintptr_t ivfasi)
 	{
 		// Fix a common random crash when opening the game. License plate text related.
@@ -171,8 +208,8 @@ public:
 			// Find version
 			int version = 0;
 
-			int value2 = ReadMemory<uint32_t>((ivfasi+0x16AB2), true);
-			if (value2 == 0x0A322E30) // '0.2'
+			int value = ReadMemory<uint16_t>((ivfasi + 0x24CF), true);
+			if (value == 0x7501) // '0.2' 01 75
 			{
 				version = 1;
 				lg << "IVF v2.0.2 detected." << "\n";
@@ -180,18 +217,26 @@ public:
 			}
 			else
 			{
-				int value = ReadMemory<uint32_t>((ivfasi+0x24517), true);
-				if (value == 0x0A312E31) // '1.1'
+				if (value == 0xF0BF) // '1.1' BF F0
 				{
 					version = 2;
-					lg << "IVF v2.1.1 detected." << "\n";
+					lg << "IVF v2.1.1 (old official) detected." << "\n";
 					lg.flush();
 				}
 				else
 				{
-					lg << "This IVF version isn't supported by this fix." << "\n";
-					lg << "Supported versions are: v2.1.1 and v2.0.2" << "\n";
-					lg.flush();
+					if (value == 0xD0BF) // '1.1' D0 BF
+					{
+						version = 3;
+						lg << "IVF v2.1.1 (new unofficial) detected." << "\n";
+						lg.flush();
+					}
+					else
+					{
+						lg << "This IVF version isn't supported by this fix: " << value << "\n";
+						lg << "Supported versions are: v2.1.1 and v2.0.2" << "\n";
+						lg.flush();
+					}
 				}
 			}
 
@@ -203,6 +248,9 @@ public:
 				break;
 			case 2:
 				Fix_211(ivfasi);
+				break;
+			case 3:
+				Fix_211new(ivfasi);
 				break;
 			default:
 				break;
