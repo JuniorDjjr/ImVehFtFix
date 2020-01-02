@@ -14,7 +14,9 @@ uintptr_t ivfasi;
 
 uintptr_t Fix_202_GetDriver_NoDriverReturn, Fix_202_GetDriver_WithDriverReturn;
 uintptr_t Fix_211_7B37_TrueReturn, Fix_211_7B37_FalseReturn;
-uintptr_t Fix_211new_7B10_TrueReturn, Fix_211new_7B10_FalseReturn;
+uintptr_t Fix_211new_7BF4_TrueReturn, Fix_211new_7BF4_FalseReturn;
+uintptr_t Fix_211new_8B86_TrueReturn, Fix_211new_8B86_FalseReturn;
+uintptr_t Fix_211_8BA6_TrueReturn, Fix_211_8BA6_FalseReturn;
 uintptr_t Fix_211_3EF8_Return;
 
 void __declspec(naked) Fix_202_GetDriver()
@@ -38,48 +40,72 @@ void __declspec(naked) Fix_202_GetDriver()
 	}
 }
 
+/////////
+void __declspec(naked) Fix_211new_8B86()
+{
+	__asm {
+		test    ecx, ecx
+		jz falsereturn
+
+		cmp     byte ptr[ecx + 30Ch], 0
+		push Fix_211new_8B86_TrueReturn
+		ret
+
+		falsereturn:
+		push Fix_211new_8B86_FalseReturn
+		ret
+	}
+}
+void __declspec(naked) Fix_211_8BA6()
+{
+	__asm {
+		test    ecx, ecx
+		jz falsereturn
+
+		cmp     byte ptr[ecx + 30Ch], 0
+		push Fix_211_8BA6_TrueReturn
+		ret
+
+		falsereturn :
+		push Fix_211_8BA6_FalseReturn
+		ret
+	}
+}
+
+/////////
+void __declspec(naked) Fix_211new_7BF4()
+{
+	__asm {
+		cmp    eax, 10h
+		jz Fix_211new_7BF4_falsereturn
+
+		mov     cl, [eax]
+		mov[eax + edi], cl
+		push Fix_211new_7BF4_TrueReturn
+		ret
+
+		Fix_211new_7BF4_falsereturn :
+		push Fix_211new_7BF4_FalseReturn
+		ret
+	}
+}
 void __declspec(naked) Fix_211_7B37()
 {
 	__asm {
 		cmp    eax, 10h
-		jz falsereturn
+		jz Fix_211_7B37_falsereturn
 
 		mov     cl, [eax]
 		mov[eax + edx], cl
 		push Fix_211_7B37_TrueReturn
 		ret
 
-		falsereturn:
+		Fix_211_7B37_falsereturn :
 		push Fix_211_7B37_FalseReturn
-		ret
+			ret
 	}
 }
 
-void __declspec(naked) Fix_211new_7B10()
-{
-	__asm {
-		cmp    eax, 10h
-		jz falsereturn
-
-		mov     cl, [eax]
-		mov[eax + edx], cl
-		push Fix_211new_7B10_TrueReturn
-		ret
-
-		falsereturn :
-		push Fix_211new_7B10_FalseReturn
-		ret
-	}
-}
-
-void __declspec(naked) Fix_211_3EF8()
-{
-	__asm {
-		//add esp, 12
-		push Fix_211_3EF8_Return
-		ret
-	}
-}
 
 char __cdecl NewRenderLicenseplateTextToRaster(char *text, RwRaster *charsRaster, int a3, RwRaster *resultRaster)
 {
@@ -151,12 +177,17 @@ public:
 		// Fix a common random crash when opening the game. License plate text related.
 		// TODO: Redirect to the original function, this new one looks useless (it was for testing proposes)
 		patch::RedirectCall((ivfasi + 0x3F6D), NewRenderLicenseplateTextToRaster, true);
-		 
+		
 		// Fix a common random crash during night.
-		Fix_211new_7B10_TrueReturn = ivfasi + 0x7BF9;
-		Fix_211new_7B10_FalseReturn = ivfasi + 0x7BFE;
-		MakeJMP((ivfasi + 0x7B10), Fix_211new_7B10);
+		Fix_211new_7BF4_TrueReturn = ivfasi + 0x7BF9;
+		Fix_211new_7BF4_FalseReturn = ivfasi + 0x7BFE;
+		MakeJMP((ivfasi + 0x7BF4), Fix_211new_7BF4);
 
+		// Fix a rare random crash.
+		Fix_211new_8B86_TrueReturn = ivfasi + 0x8B8D;
+		Fix_211new_8B86_FalseReturn = ivfasi + 0x8C86;
+		MakeJMP((ivfasi + 0x8B86), Fix_211new_8B86);
+		
 		// Disable window message about shader not compiled (the mod works without it).
 		MakeJMP((ivfasi + 0x1F1E), (ivfasi + 0x1F3E));
 		MakeJMP((ivfasi + 0x1F79), (ivfasi + 0x1F90));
@@ -175,6 +206,11 @@ public:
 		Fix_211_7B37_TrueReturn = ivfasi + 0x7B3C;
 		Fix_211_7B37_FalseReturn = ivfasi + 0x7B41;
 		MakeJMP((ivfasi + 0x7B37), Fix_211_7B37);
+
+		// Fix a rare random crash.
+		Fix_211_8BA6_TrueReturn = ivfasi + 0x8BAD;
+		Fix_211_8BA6_FalseReturn = ivfasi + 0x8CA6;
+		MakeJMP((ivfasi + 0x8BA6), Fix_211_8BA6);
 
 		// Disable window message about shader not compiled (the mod works without it).
 		MakeJMP((ivfasi + 0x1F1E), (ivfasi + 0x1F3E));
@@ -200,6 +236,7 @@ public:
 		gameInitialized = false;
 
 		lg.open("ImVehFtFix.log", fstream::out | fstream::trunc);
+		lg << "Build 6" << "\n";
         
 		ivfasi = (uintptr_t)GetModuleHandle("ImVehFt.asi");
 
