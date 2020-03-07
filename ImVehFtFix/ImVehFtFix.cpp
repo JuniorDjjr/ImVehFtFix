@@ -14,10 +14,11 @@ uintptr_t ivfasi;
 
 uintptr_t Fix_202_GetDriver_NoDriverReturn, Fix_202_GetDriver_WithDriverReturn;
 uintptr_t Fix_211_7B37_TrueReturn, Fix_211_7B37_FalseReturn;
-uintptr_t Fix_211new_7BF4_TrueReturn, Fix_211new_7BF4_FalseReturn;
-uintptr_t Fix_211new_8B86_TrueReturn, Fix_211new_8B86_FalseReturn;
+uintptr_t Fix_211_7C17_TrueReturn, Fix_211_7C17_FalseReturn;
 uintptr_t Fix_211_8BA6_TrueReturn, Fix_211_8BA6_FalseReturn;
-uintptr_t Fix_211_3EF8_Return;
+uintptr_t Fix_211new_7BF4_TrueReturn, Fix_211new_7BF4_FalseReturn;
+uintptr_t Fix_211new_7B10_TrueReturn, Fix_211new_7B10_FalseReturn;
+uintptr_t Fix_211new_8B86_TrueReturn, Fix_211new_8B86_FalseReturn;
 
 void __declspec(naked) Fix_202_GetDriver()
 {
@@ -86,6 +87,38 @@ void __declspec(naked) Fix_211new_7BF4()
 
 		Fix_211new_7BF4_falsereturn :
 		push Fix_211new_7BF4_FalseReturn
+		ret
+	}
+}
+void __declspec(naked) Fix_211new_7B10()
+{
+	__asm {
+		cmp    eax, 10h
+		jz Fix_211new_7B10_falsereturn
+
+		mov     cl, [eax]
+		mov[eax + edx], cl
+		push Fix_211new_7B10_TrueReturn
+		ret
+
+		Fix_211new_7B10_falsereturn :
+		push Fix_211new_7B10_FalseReturn
+		ret
+	}
+}
+void __declspec(naked) Fix_211_7C17()
+{
+	__asm {
+		cmp    eax, 10h
+		jz Fix_211_7C17_falsereturn
+
+		mov     cl, [eax]
+		mov[eax + edi], cl
+		push Fix_211_7C17_TrueReturn
+		ret
+
+		Fix_211_7C17_falsereturn :
+		push Fix_211_7C17_FalseReturn
 		ret
 	}
 }
@@ -182,6 +215,9 @@ public:
 		Fix_211new_7BF4_TrueReturn = ivfasi + 0x7BF9;
 		Fix_211new_7BF4_FalseReturn = ivfasi + 0x7BFE;
 		MakeJMP((ivfasi + 0x7BF4), Fix_211new_7BF4);
+		Fix_211new_7B10_TrueReturn = ivfasi + 0x7B15;
+		Fix_211new_7B10_FalseReturn = ivfasi + 0x7B1A;
+		MakeJMP((ivfasi + 0x7B10), Fix_211new_7B10);
 
 		// Fix a rare random crash.
 		Fix_211new_8B86_TrueReturn = ivfasi + 0x8B8D;
@@ -206,7 +242,10 @@ public:
 		Fix_211_7B37_TrueReturn = ivfasi + 0x7B3C;
 		Fix_211_7B37_FalseReturn = ivfasi + 0x7B41;
 		MakeJMP((ivfasi + 0x7B37), Fix_211_7B37);
-
+		Fix_211_7C17_TrueReturn = ivfasi + 0x7C1C;
+		Fix_211_7C17_FalseReturn = ivfasi + 0x7C21;
+		MakeJMP((ivfasi + 0x7C17), Fix_211_7C17);
+		
 		// Fix a rare random crash.
 		Fix_211_8BA6_TrueReturn = ivfasi + 0x8BAD;
 		Fix_211_8BA6_FalseReturn = ivfasi + 0x8CA6;
@@ -236,7 +275,7 @@ public:
 		gameInitialized = false;
 
 		lg.open("ImVehFtFix.log", fstream::out | fstream::trunc);
-		lg << "Build 6" << "\n";
+		lg << "Build 7" << "\n";
         
 		ivfasi = (uintptr_t)GetModuleHandle("ImVehFt.asi");
 
